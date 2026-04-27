@@ -1,0 +1,60 @@
+'use client';
+
+import { useState, useRef, useCallback } from 'react';
+import { useLens } from '@/hooks/useLens';
+import { useMousePosition } from '@/hooks/useMousePosition';
+import { PdfViewer } from './PdfViewer';
+import { LensOverlay } from './LensOverlay';
+import { Toolbar } from '@/components/ui/Toolbar';
+
+export function LensViewer() {
+  const lens = useLens();
+  const mouseRef = useMousePosition();
+  const pdfCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const [pdfUrl, setPdfUrl] = useState<string | null>('/portfolio.pdf');
+  const [pageCount, setPageCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const handleCanvasReady = useCallback((canvas: HTMLCanvasElement | null) => {
+    pdfCanvasRef.current = canvas;
+  }, []);
+
+  const handleFileChange = useCallback((file: File) => {
+    setPdfUrl(prev => {
+      if (prev && prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+    setCurrentPage(1);
+  }, []);
+
+  return (
+    <div
+      className="relative w-full h-screen overflow-hidden bg-[#0a0a0f]"
+      style={{ cursor: lens.state.active ? 'none' : 'default' }}
+    >
+      <PdfViewer
+        url={pdfUrl}
+        page={currentPage}
+        spread
+        onPageCount={setPageCount}
+        onCanvasReady={handleCanvasReady}
+      />
+
+      <LensOverlay
+        mouseRef={mouseRef}
+        pdfCanvasRef={pdfCanvasRef}
+        lens={lens.state}
+      />
+
+      <Toolbar
+        lens={lens}
+        pageCount={pageCount}
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        onFileChange={handleFileChange}
+        spreadMode
+      />
+    </div>
+  );
+}
