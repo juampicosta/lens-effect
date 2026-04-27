@@ -29,8 +29,11 @@ export function PdfViewer({ url, page, spread = false, onPageCount, onCanvasRead
 
     try {
       if (spread) {
+        const total = pdf.numPages;
+        const isAlone = pageNum === 1 || pageNum === total;
+        const rightNum = (!isAlone && pageNum + 1 < total) ? pageNum + 1 : null;
         const leftPage = await pdf.getPage(pageNum);
-        const rightPage = pageNum + 1 <= pdf.numPages ? await pdf.getPage(pageNum + 1) : null;
+        const rightPage = rightNum ? await pdf.getPage(rightNum) : null;
         await renderSpreadToCanvas(leftPage, rightPage, canvasRef.current, width, height);
       } else {
         const pdfPage = await pdf.getPage(pageNum);
@@ -86,18 +89,17 @@ export function PdfViewer({ url, page, spread = false, onPageCount, onCanvasRead
   }, [loadState, page, renderPage]);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 flex items-center justify-center bg-[#0a0a0f]">
+    <div ref={containerRef} className="absolute inset-0 flex items-center justify-center bg-[#0a0a0f] pl-72">
       {loadState === 'idle' && (
-        <div className="flex flex-col items-center gap-4 text-white/30">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg>
-          <div className="text-center">
-            <p className="text-sm font-medium text-white/40">No PDF loaded</p>
-            <p className="text-xs text-white/20 mt-1">Use the toolbar below to load a PDF</p>
+        <div className="flex flex-col items-center gap-6 select-none">
+          <div className="flex flex-col items-center gap-3 text-white/50">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <p className="text-lg font-semibold text-white/70">Cargá tu PDF para comenzar</p>
+            <p className="text-sm text-white/30">Usá el panel de la izquierda → <span className="text-white/50 font-medium">Cargar PDF</span></p>
           </div>
         </div>
       )}

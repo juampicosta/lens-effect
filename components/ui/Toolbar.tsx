@@ -140,34 +140,41 @@ export function Toolbar({
 
         {/* Page nav + file upload */}
         <div className="flex flex-col gap-2">
-          {pageCount > 1 && (
-            <div className="flex items-center justify-center gap-1">
-              <Button
-                variant="ghost" size="sm"
-                disabled={currentPage <= 1}
-                onClick={() => onPageChange(Math.max(1, currentPage - (spreadMode ? 2 : 1)))}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </Button>
-              <span className="text-xs text-white/50 font-mono tabular-nums px-2">
-                {spreadMode
-                  ? `${currentPage}–${Math.min(currentPage + 1, pageCount)} / ${pageCount}`
-                  : `${currentPage} / ${pageCount}`
-                }
-              </span>
-              <Button
-                variant="ghost" size="sm"
-                disabled={currentPage >= (spreadMode ? pageCount - 1 : pageCount)}
-                onClick={() => onPageChange(Math.min(pageCount - (spreadMode ? 1 : 0), currentPage + (spreadMode ? 2 : 1)))}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </Button>
-            </div>
-          )}
+          {pageCount > 1 && (() => {
+            // Spread navigation: page 1 alone, page N alone, rest in pairs.
+            const isAlone = !spreadMode || currentPage === 1 || currentPage === pageCount;
+            const rightNum = isAlone ? null : Math.min(currentPage + 1, pageCount - 1);
+            const pageLabel = spreadMode
+              ? (rightNum ? `${currentPage}–${rightNum} / ${pageCount}` : `${currentPage} / ${pageCount}`)
+              : `${currentPage} / ${pageCount}`;
+
+            const prevTarget = !spreadMode ? currentPage - 1
+              : currentPage === pageCount ? Math.max(1, currentPage - 2)
+              : currentPage === 2 ? 1
+              : currentPage - 2;
+
+            const nextTarget = !spreadMode ? currentPage + 1
+              : currentPage === 1 ? 2
+              : (currentPage + 2 >= pageCount ? pageCount : currentPage + 2);
+
+            return (
+              <div className="flex items-center justify-center gap-1">
+                <Button variant="ghost" size="sm" disabled={currentPage <= 1}
+                  onClick={() => onPageChange(prevTarget)}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </Button>
+                <span className="text-xs text-white/50 font-mono tabular-nums px-2">{pageLabel}</span>
+                <Button variant="ghost" size="sm" disabled={currentPage >= pageCount}
+                  onClick={() => onPageChange(nextTarget)}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </Button>
+              </div>
+            );
+          })()}
 
           <label className="cursor-pointer w-full">
             <span className="

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useLens } from '@/hooks/useLens';
 import { useMousePosition } from '@/hooks/useMousePosition';
 import { PdfViewer } from './PdfViewer';
@@ -12,9 +12,15 @@ export function LensViewer() {
   const mouseRef = useMousePosition();
   const pdfCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [pdfUrl, setPdfUrl] = useState<string | null>('/portfolio.pdf');
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    fetch('/portfolio.pdf', { method: 'HEAD' })
+      .then(r => { if (r.ok) setPdfUrl('/portfolio.pdf'); })
+      .catch(() => {});
+  }, []);
 
   const handleCanvasReady = useCallback((canvas: HTMLCanvasElement | null) => {
     pdfCanvasRef.current = canvas;

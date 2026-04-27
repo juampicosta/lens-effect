@@ -19,34 +19,12 @@ function getTempCanvas(w: number, h: number): OffscreenCanvas {
   return _tempCanvas;
 }
 
-// Pixel classification by dominant hue.
-// Rosado/rojo:  r>g*4 && (r>80 || b>50) — catches pure (229,8,126) and anti-aliased edges
-// Cian/celeste: r<80  && b>80 && (g+b)>r*3 — catches pure (26,157,217) and anti-aliased edges
-// All other pixels (negro, blanco) left unchanged.
-//
-// Filtered pixels → (255,255,255) white, matching the PDF page background.
 function applyChannelFilter(data: Uint8ClampedArray, filter: FilterType): void {
   for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-
     if (filter === 'cyan') {
-      // Lente CIAN: cian desaparece, rosado permanece.
-      const isCyan = r < 80 && b > 80 && (g + b) > r * 3;
-      if (isCyan) {
-        data[i]     = 255;
-        data[i + 1] = 255;
-        data[i + 2] = 255;
-      }
+      data[i] = 0; // r = 0
     } else {
-      // Lente ROSADO: rosado desaparece, cian permanece.
-      const isMagenta = g < 50 && (r > 80 || b > 50) && (r + b) > g * 6;
-      if (isMagenta) {
-        data[i]     = 255;
-        data[i + 1] = 255;
-        data[i + 2] = 255;
-      }
+      data[i + 1] = 0; // g = 0
     }
   }
 }
