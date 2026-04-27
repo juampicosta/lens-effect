@@ -14,9 +14,19 @@ export function useMousePosition(): React.RefObject<MousePosition> {
     const handleMove = (e: MouseEvent) => {
       posRef.current = { x: e.clientX, y: e.clientY };
     };
+    const handleTouch = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (t) posRef.current = { x: t.clientX, y: t.clientY };
+    };
 
     window.addEventListener('mousemove', handleMove, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMove);
+    window.addEventListener('touchstart', handleTouch, { passive: true });
+    window.addEventListener('touchmove', handleTouch, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('touchstart', handleTouch);
+      window.removeEventListener('touchmove', handleTouch);
+    };
   }, []);
 
   return posRef;

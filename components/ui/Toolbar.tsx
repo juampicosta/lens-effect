@@ -16,7 +16,7 @@ interface ToolbarProps {
 
 const FILTERS: { value: FilterType; label: string; color: string }[] = [
   { value: 'red',  label: 'Rosado', color: 'rgb(220,50,150)' },
-  { value: 'cyan', label: 'Cian',  color: 'rgb(0,200,200)'  },
+  { value: 'cyan', label: 'Cian',   color: 'rgb(0,200,200)'  },
 ];
 
 export function Toolbar({
@@ -35,21 +35,42 @@ export function Toolbar({
     ? '0 0 8px rgba(240,60,60,0.5)'
     : '0 0 8px rgba(0,210,210,0.5)';
 
+  // Spread navigation helpers
+  const isAlone = !spreadMode || currentPage === 1 || currentPage === pageCount;
+  const rightNum = isAlone ? null : Math.min(currentPage + 1, pageCount - 1);
+  const pageLabel = spreadMode
+    ? (rightNum ? `${currentPage}–${rightNum} / ${pageCount}` : `${currentPage} / ${pageCount}`)
+    : `${currentPage} / ${pageCount}`;
+  const prevTarget = !spreadMode ? currentPage - 1
+    : currentPage === pageCount ? Math.max(1, currentPage - 2)
+    : currentPage === 2 ? 1
+    : currentPage - 2;
+  const nextTarget = !spreadMode ? currentPage + 1
+    : currentPage === 1 ? 2
+    : (currentPage + 2 >= pageCount ? pageCount : currentPage + 2);
+
   return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 z-50 flex items-start gap-2 select-none">
+    // Mobile: fixed bottom, full-width, col layout (panel above toggle)
+    // Desktop: fixed left, auto-width, row layout (panel left, toggle right)
+    <div className="
+      fixed z-50 select-none
+      bottom-4 left-4 right-4 flex flex-col gap-2
+      md:left-4 md:right-auto md:top-1/2 md:bottom-auto md:-translate-y-1/2 md:flex-row md:items-start
+    ">
 
       {/* ── Panel ─────────────────────────────────────────────────────── */}
-      <div
-        className={`
-          flex flex-col gap-4 overflow-hidden
-          bg-black/65 backdrop-blur-2xl
-          border border-white/10
-          shadow-2xl shadow-black/60
-          rounded-2xl
-          transition-all duration-300 ease-in-out
-          ${open ? 'w-64 px-5 py-5 opacity-100' : 'w-0 px-0 py-0 opacity-0 pointer-events-none'}
-        `}
-      >
+      <div className={`
+        flex flex-col gap-4 overflow-y-auto
+        bg-black/65 backdrop-blur-2xl
+        border border-white/10
+        shadow-2xl shadow-black/60
+        rounded-2xl
+        transition-all duration-300 ease-in-out
+        ${open
+          ? 'max-h-[75vh] px-5 py-5 opacity-100 md:max-h-none md:w-64'
+          : 'max-h-0 py-0 opacity-0 pointer-events-none md:max-h-none md:w-0 md:px-0'
+        }
+      `}>
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -65,11 +86,7 @@ export function Toolbar({
             </span>
           </div>
 
-          <Button
-            variant={state.active ? 'active' : 'default'}
-            size="sm"
-            onClick={toggle}
-          >
+          <Button variant={state.active ? 'active' : 'default'} size="sm" onClick={toggle}>
             {state.active ? (
               <>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -140,41 +157,23 @@ export function Toolbar({
 
         {/* Page nav + file upload */}
         <div className="flex flex-col gap-2">
-          {pageCount > 1 && (() => {
-            // Spread navigation: page 1 alone, page N alone, rest in pairs.
-            const isAlone = !spreadMode || currentPage === 1 || currentPage === pageCount;
-            const rightNum = isAlone ? null : Math.min(currentPage + 1, pageCount - 1);
-            const pageLabel = spreadMode
-              ? (rightNum ? `${currentPage}–${rightNum} / ${pageCount}` : `${currentPage} / ${pageCount}`)
-              : `${currentPage} / ${pageCount}`;
-
-            const prevTarget = !spreadMode ? currentPage - 1
-              : currentPage === pageCount ? Math.max(1, currentPage - 2)
-              : currentPage === 2 ? 1
-              : currentPage - 2;
-
-            const nextTarget = !spreadMode ? currentPage + 1
-              : currentPage === 1 ? 2
-              : (currentPage + 2 >= pageCount ? pageCount : currentPage + 2);
-
-            return (
-              <div className="flex items-center justify-center gap-1">
-                <Button variant="ghost" size="sm" disabled={currentPage <= 1}
-                  onClick={() => onPageChange(prevTarget)}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
-                </Button>
-                <span className="text-xs text-white/50 font-mono tabular-nums px-2">{pageLabel}</span>
-                <Button variant="ghost" size="sm" disabled={currentPage >= pageCount}
-                  onClick={() => onPageChange(nextTarget)}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </Button>
-              </div>
-            );
-          })()}
+          {pageCount > 1 && (
+            <div className="flex items-center justify-center gap-1">
+              <Button variant="ghost" size="sm" disabled={currentPage <= 1}
+                onClick={() => onPageChange(prevTarget)}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </Button>
+              <span className="text-xs text-white/50 font-mono tabular-nums px-2">{pageLabel}</span>
+              <Button variant="ghost" size="sm" disabled={currentPage >= pageCount}
+                onClick={() => onPageChange(nextTarget)}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </Button>
+            </div>
+          )}
 
           <label className="cursor-pointer w-full">
             <span className="
@@ -204,18 +203,19 @@ export function Toolbar({
         </div>
       </div>
 
-      {/* ── Toggle button (always visible) ────────────────────────────── */}
+      {/* ── Toggle button ─────────────────────────────────────────────── */}
+      {/* Mobile: full-width bar at bottom. Desktop: small square to the right. */}
       <button
         onClick={() => setOpen(o => !o)}
         className="
-          mt-0 flex items-center justify-center
-          w-8 h-8 rounded-xl
+          flex items-center justify-center gap-2
+          h-10 px-4 rounded-xl
           bg-black/65 backdrop-blur-2xl
           border border-white/10
           text-white/50 hover:text-white
           shadow-lg shadow-black/40
           transition-all duration-200 hover:bg-white/10
-          shrink-0
+          md:w-8 md:h-8 md:px-0 md:shrink-0
         "
         title={open ? 'Cerrar panel' : 'Abrir panel'}
       >
@@ -225,10 +225,13 @@ export function Toolbar({
           fill="none"
           stroke="currentColor"
           strokeWidth="2.5"
-          className={`transition-transform duration-300 ${open ? 'rotate-180' : 'rotate-0'}`}
+          className={`transition-transform duration-300 ${open ? 'rotate-90 md:rotate-180' : '-rotate-90 md:rotate-0'}`}
         >
           <polyline points="15 18 9 12 15 6" />
         </svg>
+        <span className="text-xs font-medium md:hidden">
+          {open ? 'Cerrar' : 'Opciones'}
+        </span>
       </button>
     </div>
   );

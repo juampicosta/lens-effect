@@ -89,7 +89,7 @@ export function PdfViewer({ url, page, spread = false, onPageCount, onCanvasRead
   }, [loadState, page, renderPage]);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 flex items-center justify-center bg-[#0a0a0f] pl-72">
+    <div ref={containerRef} className="absolute inset-0 flex items-center justify-center bg-[#0a0a0f] pb-24 md:pb-0 md:pl-72">
       {loadState === 'idle' && (
         <div className="flex flex-col items-center gap-6 select-none">
           <div className="flex flex-col items-center gap-3 text-white/50">
