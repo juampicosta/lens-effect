@@ -22,15 +22,19 @@ export async function loadPdf(url: string): Promise<PDFDocumentProxy> {
   return loadingTask.promise;
 }
 
+function getDpr(): number {
+  return typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+}
+
 export async function renderPageToCanvas(
   page: PDFPageProxy,
   canvas: HTMLCanvasElement,
   scale: number
 ): Promise<void> {
-  const viewport = page.getViewport({ scale });
+  const dpr = getDpr();
+  const viewport = page.getViewport({ scale: scale * dpr });
   canvas.width = viewport.width;
   canvas.height = viewport.height;
-
   await page.render({ canvas, viewport }).promise;
 }
 
@@ -50,12 +54,14 @@ export async function renderSpreadToCanvas(
   containerWidth: number,
   containerHeight: number
 ): Promise<void> {
+  const dpr = getDpr();
   const refPage = (leftPage ?? rightPage)!;
   const refVp = refPage.getViewport({ scale: 1 });
   const hasBoth = !!(leftPage && rightPage);
   const gap = hasBoth ? 4 : 0;
   const totalNaturalW = refVp.width * (hasBoth ? 2 : 1) + gap;
-  const scale = Math.min(containerWidth / totalNaturalW, containerHeight / refVp.height);
+  // Logical scale fits in container; multiply by DPR for crisp pixels.
+  const scale = Math.min(containerWidth / totalNaturalW, containerHeight / refVp.height) * dpr;
   const scaledW = Math.round(refVp.width * scale);
   const scaledH = Math.round(refVp.height * scale);
   const scaledGap = Math.round(gap * scale);
