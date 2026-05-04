@@ -83,9 +83,13 @@ export function PdfViewer({ url, page, spread = false, onPageCount, onCanvasRead
   useEffect(() => {
     if (loadState !== 'ready' || !pdfRef.current) return;
     const pdf = pdfRef.current;
-    const ro = new ResizeObserver(() => renderPage(pdf, page));
+    let timer: ReturnType<typeof setTimeout>;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(timer);
+      timer = setTimeout(() => renderPage(pdf, page), 250);
+    });
     if (containerRef.current) ro.observe(containerRef.current);
-    return () => ro.disconnect();
+    return () => { ro.disconnect(); clearTimeout(timer); };
   }, [loadState, page, renderPage]);
 
   return (
